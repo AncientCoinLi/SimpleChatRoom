@@ -1,4 +1,4 @@
-package model;
+package cipher;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;

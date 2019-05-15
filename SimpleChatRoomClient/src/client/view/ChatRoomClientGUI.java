@@ -19,19 +19,24 @@ import java.util.Vector;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
 import javax.swing.SwingUtilities;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.JTableHeader;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import javax.swing.text.SimpleAttributeSet;
@@ -41,19 +46,20 @@ import javax.swing.text.StyledDocument;
 import client.controller.ClientController;
 import client.model.Network;
 import client.model.CommandType;
+import client.model.EncryptType;
 import client.model.LineWrapTextPane;
 
 public class ChatRoomClientGUI extends JFrame {
 
-	private final int MEMBER_WIDTH = 120;
+	private final int MEMBER_WIDTH = 150;
 	private final int MEMBER_HEIGHT = 500;
-	private final int WIDTH = 600;
+	private final int WIDTH = 700;
 	private final int HEIGHT = 800;
-	private final int TYPE_WIDTH = 550;
+	private final int TYPE_WIDTH = 600;
 	private final int TYPE_HEIGHT = 50;
 	private final int LOG_WIDTH = 480;
 	private final int LOG_HEIGHT = 550;
-	private final int ENTER_WIDTH = 400;
+	private final int ENTER_WIDTH = 500;
 	private final int ENTER_HEIGHT = 40;
 	private final Font font = new Font("楷体", Font.PLAIN, 20);
 	
@@ -61,6 +67,7 @@ public class ChatRoomClientGUI extends JFrame {
 	protected String userName;
 	private HashMap<String, Vector<String>> memberList;
 	private Vector<Vector<String>> memberData;
+	private EncryptType encryptType;
 	
 	private JTextPane log;
 	private ClientController controller;
@@ -71,6 +78,8 @@ public class ChatRoomClientGUI extends JFrame {
 	private JScrollPane memberScrollPane;
 	private JTable memberTable;
 	private JPanel mainPane;
+	private JPanel encryptPane;
+	private ButtonGroup encryptSelectGroup;
 	
 	public ChatRoomClientGUI() {
 		this.network = new Network();
@@ -78,6 +87,7 @@ public class ChatRoomClientGUI extends JFrame {
 		this.network.initialise(controller);
 		this.controller.initialise(this, network);
 		this.memberList = new HashMap<>();
+		this.encryptType = EncryptType.AES;
 		
 		this.setSize(WIDTH, HEIGHT);
 		this.setResizable(false);
@@ -102,7 +112,6 @@ public class ChatRoomClientGUI extends JFrame {
 		log.setMargin(new Insets(5, 5, 20, 5));
 		log.setEditable(false);		
 
-		
 		displayScrollPane = new JScrollPane();
 		displayScrollPane.setViewportView(log);
 		displayScrollPane.setPreferredSize(new Dimension(LOG_WIDTH, LOG_HEIGHT));
@@ -112,7 +121,6 @@ public class ChatRoomClientGUI extends JFrame {
 		Vector<String> colName = new Vector<>();
 		colName.add("Member");
 		memberData = new Vector<>();
-		
 		memberTable = new JTable(new DefaultTableModel(memberData, colName) {
 			@Override
 			public boolean isCellEditable(int row, int col) {
@@ -123,9 +131,12 @@ public class ChatRoomClientGUI extends JFrame {
 		cr.setHorizontalAlignment(JLabel.CENTER);
 		memberTable.setDefaultRenderer(Object.class, cr);
 		memberTable.setFillsViewportHeight(true);
-		memberTable.setMinimumSize(new Dimension(MEMBER_WIDTH, MEMBER_HEIGHT-100));
 		memberTable.setPreferredSize(new Dimension(MEMBER_WIDTH, MEMBER_HEIGHT-100));
 		memberTable.setLayout(new BoxLayout(memberTable, BoxLayout.Y_AXIS));
+		memberTable.setFont(new Font("Menu.font", Font.PLAIN, 20));
+		memberTable.getTableHeader().setFont(new Font("Menu.font", Font.PLAIN, 25));
+		memberTable.getTableHeader().setPreferredSize(new Dimension(MEMBER_WIDTH, 35));
+		memberTable.setRowHeight(30);
 		
 		memberScrollPane = new JScrollPane(memberTable);
 		memberScrollPane.setMinimumSize(new Dimension(MEMBER_WIDTH, MEMBER_HEIGHT));
@@ -138,9 +149,45 @@ public class ChatRoomClientGUI extends JFrame {
 		content.add(mainPane, BorderLayout.CENTER);
 		
 		typeField = new JPanel();
-		typeField.setSize(TYPE_WIDTH, TYPE_HEIGHT);
+		typeField.setPreferredSize(new Dimension(TYPE_WIDTH, TYPE_HEIGHT * 2));
 		typeField.setLayout(new FlowLayout());
 		content.add(typeField, BorderLayout.SOUTH);
+		
+		encryptPane = new JPanel();
+		encryptPane.setPreferredSize(new Dimension(ENTER_WIDTH, ENTER_HEIGHT));
+		encryptPane.setLayout(new BoxLayout(encryptPane, BoxLayout.X_AXIS));
+		JLabel info = new JLabel("Encrypt Type: ");
+		info.setFont(font);
+		encryptPane.add(info);
+		JRadioButton aes, rsa, shamir;
+		aes = new JRadioButton("AES", true);
+		rsa = new JRadioButton("RSA");
+		shamir = new JRadioButton("Shamir Sign");
+		aes.setFont(font);
+		rsa.setFont(font);
+		shamir.setFont(font);
+		ActionListener listener = new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if(aes.isSelected()) encryptType = EncryptType.AES;
+				else if(rsa.isSelected()) encryptType = EncryptType.RSA;
+				else if(shamir.isSelected()) encryptType = EncryptType.SHAMIR;
+			}
+			
+		};
+		aes.addActionListener(listener);
+		rsa.addActionListener(listener);
+		shamir.addActionListener(listener);
+
+		encryptSelectGroup = new ButtonGroup();
+		encryptSelectGroup.add(aes);
+		encryptSelectGroup.add(rsa);
+		encryptSelectGroup.add(shamir);
+		encryptPane.add(aes);
+		encryptPane.add(rsa);
+		encryptPane.add(shamir);
+		typeField.add(encryptPane);
 		
 		inputField = new JTextField();
 		inputField.setFont(font);
@@ -158,15 +205,16 @@ public class ChatRoomClientGUI extends JFrame {
 			
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				sendMessage(userName + ":" +inputField.getText(), CommandType.MESSAGE);
-			}
+				if(inputField.getText().equals("")) JOptionPane.showMessageDialog(getParent(), "Cannot Send Empty Message.");
+				else sendMessage(userName + ":" +inputField.getText(), CommandType.MESSAGE);			}
 		});
 		
 		inputField.addActionListener(new ActionListener() {
 			
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				sendMessage(userName + ":" +inputField.getText(), CommandType.MESSAGE);
+				if(inputField.getText().equals("")) JOptionPane.showMessageDialog(getParent(), "Cannot Send Empty Message.");
+				else sendMessage(userName + ":" +inputField.getText(), CommandType.MESSAGE);
 			}
 		});
 		
@@ -286,6 +334,10 @@ public class ChatRoomClientGUI extends JFrame {
 	public void registerSucceed() {
 		this.inputField.setEnabled(true);
 		inputField.requestFocus();
+	}
+
+	public EncryptType getEncryptType() {
+		return this.encryptType;
 	}
 
 

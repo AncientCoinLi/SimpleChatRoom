@@ -17,6 +17,7 @@ public class Communication implements Runnable {
 	private Socket socket;
 	private boolean isRunning;
 	private ServerController controller;
+	private String username;
 	
 	public Communication(Socket socket, ServerController controller) {
 		this.controller = controller;
@@ -40,7 +41,9 @@ public class Communication implements Runnable {
 				processInput(receive);
 			}
 		} catch (IOException e) {
-			e.printStackTrace();
+			System.out.println(e.getMessage() + System.lineSeparator() + socket.getInetAddress());
+			controller.unregister(this.username);
+			System.out.println(username + " quit.");
 		}
 	}
 	
@@ -83,6 +86,7 @@ public class Communication implements Runnable {
 		boolean status = controller.register(userName, this);
 		if(status) {
 			wrapMessage(userName, CommandType.REGISTER_SUCCESS);
+			this.username = userName;
 		}else {
 			wrapMessage(userName, CommandType.REGISTER_FAILURE);
 		}

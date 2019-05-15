@@ -1,6 +1,6 @@
 package application;
 
-import view.ChatRoomClientGUI;
+import client.view.ChatRoomClientGUI;
 
 public class ChatRoomClientStartup {
 	

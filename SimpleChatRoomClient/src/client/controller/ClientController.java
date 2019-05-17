@@ -102,11 +102,10 @@ public class ClientController {
 				else return;
 			case RSA:
 				JSonDoc rsaInfo = (JSonDoc) doc.get("encryptInfo");
-				BigInteger p = new BigInteger(rsaInfo.getString("p"));
-				BigInteger q = new BigInteger(rsaInfo.getString("q"));
+				BigInteger n2 = new BigInteger(rsaInfo.getString("n"));
 				BigInteger e2 = new BigInteger(rsaInfo.getString("e"));
-				BigInteger c = new BigInteger(rsaInfo.getString("c"));
-				message = Decryption.RSADecode(message, p, q, e2, c);
+				BigInteger phi = new BigInteger(rsaInfo.getString("phi"));
+				message = Decryption.RSADecode(message, n2, e2, phi);
 				break;
 				default:
 					break;

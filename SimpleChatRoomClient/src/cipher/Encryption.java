@@ -86,11 +86,11 @@ public class Encryption {
 		String cipherText = Base64.getEncoder().encodeToString(cByte);
 
 		HashMap<String, String> rsa = new HashMap<>();
-		rsa.put("c", c.toString());
 		rsa.put("e", e.toString());
-		rsa.put("q", q.toString());
-		rsa.put("p", p.toString());
+		rsa.put("n", n.toString());
+		rsa.put("phi", phi.toString());
 		rsa.put("cipherText", cipherText);
+		
 		return rsa;
 		
 	}

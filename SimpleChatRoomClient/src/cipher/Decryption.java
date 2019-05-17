@@ -89,17 +89,16 @@ public class Decryption {
 	
 
 	
-	public static String RSADecode(String cipherText, BigInteger p, BigInteger q, BigInteger e, BigInteger c) {
-		// n = p*q
-		BigInteger n = p.multiply(q);
-		// ¦µ(n) = (p-1)*(q-1)
-		BigInteger phi = (p.subtract(BigInteger.ONE)).multiply(q.subtract(BigInteger.ONE));
-		// e*d = 1 (mod(¦µ(n)))
+	public static String RSADecode(String cipherText, BigInteger n, BigInteger e, BigInteger phi) {
+		
+		byte[] cipherBytes = Base64.getDecoder().decode(cipherText);
+		
+		BigInteger c = new BigInteger(cipherBytes); 
 		BigInteger d = e.modInverse(phi);
 		// Decryption: m = c^d(mod n)
 		BigInteger m = c.modPow(d, n);	
 		byte[] m2Byte = m.toByteArray();
-		String plainText = new String(m2Byte, StandardCharsets.UTF_8);
+		String plainText = new String(m2Byte);
 		return plainText;
 	}
 }
